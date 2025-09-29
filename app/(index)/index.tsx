@@ -1,87 +1,176 @@
-import React from "react";
-import { Stack, router } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text } from "react-native";
-// Components
-import { IconCircle } from "@/components/IconCircle";
-import { IconSymbol } from "@/components/IconSymbol";
-import { BodyScrollView } from "@/components/BodyScrollView";
-import { Button } from "@/components/button";
-// Constants & Hooks
-import { backgroundColors } from "@/constants/Colors";
 
-const ICON_COLOR = "#007AFF";
+import React, { useState, useEffect } from "react";
+import { Stack, router } from "expo-router";
+import { ScrollView, StyleSheet, View, Text, Pressable } from "react-native";
+import { IconSymbol } from "@/components/IconSymbol";
+import { colors, commonStyles } from "@/styles/commonStyles";
+import { Button } from "@/components/button";
+
+interface UserProgress {
+  level: number;
+  xp: number;
+  streak: number;
+  lessonsCompleted: number;
+  conversationsCompleted: number;
+}
+
+interface LessonCategory {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  progress: number;
+  locked: boolean;
+}
 
 export default function HomeScreen() {
+  const [userProgress, setUserProgress] = useState<UserProgress>({
+    level: 1,
+    xp: 150,
+    streak: 3,
+    lessonsCompleted: 5,
+    conversationsCompleted: 2,
+  });
 
-  const modalDemos = [
+  const lessonCategories: LessonCategory[] = [
     {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
+      id: 'basics',
+      title: '基础对话',
+      description: 'Basic Conversations',
+      icon: 'message.circle',
+      color: colors.primary,
+      progress: 60,
+      locked: false,
     },
     {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
+      id: 'greetings',
+      title: '问候语',
+      description: 'Greetings & Introductions',
+      icon: 'hand.wave',
+      color: colors.secondary,
+      progress: 80,
+      locked: false,
     },
     {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
-    }
+      id: 'shopping',
+      title: '购物',
+      description: 'Shopping & Markets',
+      icon: 'bag',
+      color: colors.accent,
+      progress: 30,
+      locked: false,
+    },
+    {
+      id: 'restaurant',
+      title: '餐厅',
+      description: 'Restaurant & Food',
+      icon: 'fork.knife',
+      color: colors.success,
+      progress: 0,
+      locked: true,
+    },
+    {
+      id: 'travel',
+      title: '旅行',
+      description: 'Travel & Transportation',
+      icon: 'airplane',
+      color: colors.error,
+      progress: 0,
+      locked: true,
+    },
   ];
 
-  const renderModalDemo = ({ item }: { item: typeof modalDemos[0] }) => (
-    <View style={styles.demoCard}>
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
+  const renderProgressCard = () => (
+    <View style={[commonStyles.progressCard, styles.progressCard]}>
+      <View style={styles.progressHeader}>
+        <View>
+          <Text style={styles.levelText}>Level {userProgress.level}</Text>
+          <Text style={styles.xpText}>{userProgress.xp} XP</Text>
+        </View>
+        <View style={styles.streakContainer}>
+          <IconSymbol name="flame" color={colors.primary} size={24} />
+          <Text style={styles.streakText}>{userProgress.streak} day streak</Text>
+        </View>
       </View>
-      <View style={styles.demoContent}>
-        <Text style={styles.demoTitle}>{item.title}</Text>
-        <Text style={styles.demoDescription}>{item.description}</Text>
+      
+      <View style={styles.progressBar}>
+        <View style={[styles.progressFill, { width: `${(userProgress.xp % 200) / 2}%` }]} />
       </View>
-      <Button
-        variant="outline"
-        size="sm"
-        onPress={() => router.push(item.route as any)}
-      >
-        Try It
-      </Button>
+      
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{userProgress.lessonsCompleted}</Text>
+          <Text style={styles.statLabel}>Lessons</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{userProgress.conversationsCompleted}</Text>
+          <Text style={styles.statLabel}>Conversations</Text>
+        </View>
+      </View>
     </View>
   );
 
-  const renderEmptyList = () => (
-    <BodyScrollView contentContainerStyle={styles.emptyStateContainer}>
-      <IconCircle
-        emoji=""
-        backgroundColor={
-          backgroundColors[Math.floor(Math.random() * backgroundColors.length)]
+  const renderLessonCategory = (category: LessonCategory) => (
+    <Pressable
+      key={category.id}
+      style={[
+        styles.categoryCard,
+        { opacity: category.locked ? 0.6 : 1 }
+      ]}
+      onPress={() => {
+        if (!category.locked) {
+          console.log(`Opening category: ${category.id}`);
+          router.push(`/lessons/${category.id}`);
         }
-      />
-    </BodyScrollView>
+      }}
+      disabled={category.locked}
+    >
+      <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+        <IconSymbol name={category.icon as any} color="white" size={28} />
+      </View>
+      
+      <View style={styles.categoryContent}>
+        <Text style={styles.categoryTitle}>{category.title}</Text>
+        <Text style={styles.categoryDescription}>{category.description}</Text>
+        
+        <View style={styles.progressContainer}>
+          <View style={styles.progressTrack}>
+            <View style={[styles.categoryProgress, { width: `${category.progress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>{category.progress}%</Text>
+        </View>
+      </View>
+      
+      {category.locked && (
+        <View style={styles.lockIcon}>
+          <IconSymbol name="lock" color={colors.textLight} size={20} />
+        </View>
+      )}
+    </Pressable>
   );
 
   const renderHeaderRight = () => (
     <Pressable
-      onPress={() => {console.log("plus")}}
-      style={styles.headerButtonContainer}
+      onPress={() => {
+        console.log("Opening profile");
+        router.push('/profile');
+      }}
+      style={styles.headerButton}
     >
-      <IconSymbol name="plus" color={ICON_COLOR} />
+      <IconSymbol name="person.circle" color={colors.primary} size={28} />
     </Pressable>
   );
 
   const renderHeaderLeft = () => (
     <Pressable
-      onPress={() => {console.log("gear")}}
-      style={styles.headerButtonContainer}
+      onPress={() => {
+        console.log("Opening settings");
+        router.push('/settings');
+      }}
+      style={styles.headerButton}
     >
-      <IconSymbol
-        name="gear"
-        color={ICON_COLOR}
-      />
+      <IconSymbol name="gear" color={colors.primary} size={28} />
     </Pressable>
   );
 
@@ -89,21 +178,50 @@ export default function HomeScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "Building the app...",
+          title: "ChineseChat",
+          headerStyle: { backgroundColor: colors.background },
+          headerTitleStyle: { color: colors.text, fontWeight: '700' },
           headerRight: renderHeaderRight,
           headerLeft: renderHeaderLeft,
         }}
       />
-      <View style={styles.container}>
-        <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
-          contentContainerStyle={styles.listContainer}
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
+      
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {renderProgressCard()}
+        
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Choose Your Adventure</Text>
+          <Text style={styles.sectionSubtitle}>Practice real conversations in Chinese</Text>
+        </View>
+        
+        <View style={styles.categoriesContainer}>
+          {lessonCategories.map(renderLessonCategory)}
+        </View>
+        
+        <View style={styles.quickActionsContainer}>
+          <Button
+            variant="primary"
+            onPress={() => {
+              console.log("Starting daily challenge");
+              router.push('/daily-challenge');
+            }}
+            style={styles.actionButton}
+          >
+            🎯 Daily Challenge
+          </Button>
+          
+          <Button
+            variant="outline"
+            onPress={() => {
+              console.log("Opening conversation practice");
+              router.push('/conversation-practice');
+            }}
+            style={styles.actionButton}
+          >
+            💬 Free Conversation
+          </Button>
+        </View>
+      </ScrollView>
     </>
   );
 }
@@ -111,71 +229,153 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
-  headerSection: {
-    padding: 20,
-    paddingBottom: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+  progressCard: {
+    marginTop: 8,
   },
-  headerTitle: {
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  levelText: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: colors.text,
+  },
+  xpText: {
+    fontSize: 16,
+    color: colors.textLight,
+    marginTop: 4,
+  },
+  streakContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  streakText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginLeft: 6,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 4,
+    marginBottom: 16,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginTop: 4,
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
     marginBottom: 8,
   },
-  headerSubtitle: {
+  sectionSubtitle: {
     fontSize: 16,
-    color: '#666',
-    lineHeight: 22,
+    color: colors.textLight,
   },
-  listContainer: {
-    paddingVertical: 16,
+  categoriesContainer: {
     paddingHorizontal: 16,
   },
-  demoCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
+  categoryCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
   },
-  demoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  categoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
-  demoContent: {
+  categoryContent: {
     flex: 1,
   },
-  demoTitle: {
+  categoryTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
     marginBottom: 4,
   },
-  demoDescription: {
+  categoryDescription: {
     fontSize: 14,
-    color: '#666',
-    lineHeight: 18,
+    color: colors.textLight,
+    marginBottom: 12,
   },
-  emptyStateContainer: {
-    alignItems: "center",
-    gap: 8,
-    paddingTop: 100,
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  headerButtonContainer: {
-    padding: 6, // Just enough padding around the 24px icon
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 3,
+    marginRight: 12,
+  },
+  categoryProgress: {
+    height: '100%',
+    backgroundColor: colors.success,
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textLight,
+    minWidth: 35,
+  },
+  lockIcon: {
+    marginLeft: 12,
+  },
+  quickActionsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    gap: 12,
+  },
+  actionButton: {
+    marginBottom: 8,
+  },
+  headerButton: {
+    padding: 8,
   },
 });

@@ -42,12 +42,12 @@ export default function RootLayout() {
     ...DefaultTheme,
     dark: false,
     colors: {
-      primary: "rgb(0, 122, 255)", // System Blue
-      background: "rgb(242, 242, 247)", // Light mode background
+      primary: "rgb(255, 107, 53)", // Chinese learning app primary color
+      background: "rgb(255, 255, 255)", // Clean white background
       card: "rgb(255, 255, 255)", // White cards/surfaces
-      text: "rgb(0, 0, 0)", // Black text for light mode
-      border: "rgb(216, 216, 220)", // Light gray for separators/borders
-      notification: "rgb(255, 59, 48)", // System Red
+      text: "rgb(44, 62, 80)", // Dark text for readability
+      border: "rgb(233, 236, 239)", // Light border
+      notification: "rgb(255, 107, 53)", // Primary color for notifications
     },
   };
 
@@ -76,17 +76,25 @@ export default function RootLayout() {
             >
               {/* Main app group */}
               <Stack.Screen name="(index)" />
+              
+              {/* Chinese Learning App Screens */}
+              <Stack.Screen name="lessons/[category]" options={{ headerShown: true }} />
+              <Stack.Screen name="lesson/[id]" options={{ headerShown: true }} />
+              <Stack.Screen name="conversation-practice" options={{ headerShown: true }} />
+              <Stack.Screen name="daily-challenge" options={{ headerShown: true }} />
+              <Stack.Screen name="profile" options={{ headerShown: true }} />
+              <Stack.Screen name="settings" options={{ headerShown: true }} />
 
               {/* Modal Demo Screens */}
               <Stack.Screen
-                name="modal-demo"
+                name="modal"
                 options={{
                   presentation: "modal",
                   headerShown: true,
                 }}
               />
               <Stack.Screen
-                name="formsheet-demo"
+                name="formsheet"
                 options={{
                   presentation: "formSheet",
                   sheetGrabberVisible: true,
@@ -96,7 +104,7 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
-                name="transparent-modal-demo"
+                name="transparent-modal"
                 options={{
                   presentation: "transparentModal",
                   headerShown: false,
